@@ -1,5 +1,4 @@
 import express from 'express';
-import notiController from '../../controllers/notiManage/notiManage.controller.js';
 import accountController from '../../controllers/accountManage/accountManage.controller.js';
 
 const router = express.Router();

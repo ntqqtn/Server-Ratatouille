@@ -1,5 +1,6 @@
 import { WebSocketServer } from 'ws';
 import { createComment } from "../controllers/forumManage/createComment.js";
+import { deleteComment } from "../controllers/forumManage/deleteComment.js";
 
 const clientInPost = {};
 
@@ -12,29 +13,52 @@ const initializeWebSocket = (server) => {
     if (!clientInPost[post_id]) {
       clientInPost[post_id] = [];
     }
-    console.log(`Number of clients in post ${post_id}:`, clientInPost[post_id].length);
+    // console.log(`Number of clients in post ${post_id}:`, clientInPost[post_id].length);
 
-    console.log('Connection for post_id:', post_id);
+    // console.log('Connection for post_id:', post_id);
     // clientInPost[post_id].push(ws);
     if (!clientInPost[post_id].includes(ws)) {
         clientInPost[post_id].push(ws);
-      }
+    }
+
     ws.on('message', async (message) => {
       const data = JSON.parse(message);
     
-      console.log("data nhaan dc ", data);
+      // console.log("data nhaan dc ", data);
+      // console.log("data nhaan dc ", data.commentId);
       try {
-        const postedComment = await createComment(data);
+        if(data.action === "create_comment"){
+          const postedComment = await createComment(data);
+          // console.log("created comment", postedComment)
+          clientInPost[post_id].forEach(client => {
+            if (client.readyState === ws.OPEN) { // Thay WebSocket.OPEN bằng ws.OPEN
+              client.send(JSON.stringify({
+                type: "new_comment",
+                comment: postedComment
+              })); // Gửi comment mới
+            }
+          });
+        }
+        if(data.action === "delete_comment"){
+          const commentId  = data.commentId;
+          // console.log("comment id dang test", commentId)
 
-        console.log("created comment", postedComment)
-        clientInPost[post_id].forEach(client => {
-          if (client.readyState === ws.OPEN) { // Thay WebSocket.OPEN bằng ws.OPEN
-            client.send(JSON.stringify(postedComment)); // Gửi comment mới
-          }
-        });
+          await deleteComment(commentId);
+
+          clientInPost[post_id].forEach(client => {
+            if(client.readyState === ws.OPEN) {
+              client.send(JSON.stringify({
+                type: "delete_comment",
+                commentId: commentId
+              }))
+            }
+          })
+        }
+
+        
       } catch (err) {
         console.error('Error handling message:', err);
-        ws.send(JSON.stringify({ error: 'Failed to save comment.' })); // Trả về lỗi nếu có
+        ws.send(JSON.stringify({ error: 'Failed to proccess comment.' })); // Trả về lỗi nếu có
       }
     });
 

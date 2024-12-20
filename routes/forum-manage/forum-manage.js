@@ -23,4 +23,5 @@ router.get('/posted-post-file/:postId', forumManageController.getPostedPostFile)
 router.get('/get-all-comments-in-post/:postId', forumManageController.getAllCommentsInPost);
 router.get('/get-comment-by-id/:commentId', forumManageController.getCommentById);
 router.post('/create-comment', forumManageController.createComment);
+// router.put('/delete-comment/:commentId', forumManageController.deleteComment);
 export default router;

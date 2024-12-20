@@ -205,6 +205,21 @@ const forumManageController = {
         }
         return res.status(200).send("Create comment successfully.")
     })
+  },
+
+  deleteComment: (req, res) => {
+    const commentId = req.params.commentId;
+    console.log("comment id in deleteComment", commentId);
+    const content = "Message is unsent";
+    const sql = `UPDATE comments SET content = ? WHERE comment_id = ?`;
+
+    connection.query(sql, [content, commentId], (err, data) => {
+        if(err){
+            console.error("Error executing deleteComment", err);
+            return res.status(500).send("Error in deleteComment");
+        }
+        return res.status(200).send("Delete comment successfully.")
+    })
   }
 };
 

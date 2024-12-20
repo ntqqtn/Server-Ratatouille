@@ -1,6 +1,7 @@
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { S3Client, GetObjectCommand,PutObjectCommand,ListObjectsV2Command,DeleteObjectCommand,CopyObjectCommand} from '@aws-sdk/client-s3';
 import dotenv from "dotenv";
+import { NodeHttpHandler } from '@aws-sdk/node-http-handler';
 dotenv.config();
 const region = process.env.AWS_REGION;
 const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
@@ -13,6 +14,9 @@ const s3Client = new S3Client({
     accessKeyId: accessKeyId,
     secretAccessKey: secretAccessKey,
   },
+  requestHandler: new NodeHttpHandler({
+    connectionTimeout: 10000, // Increase timeout to 10 seconds
+  }),
 })
 
 async function generateUploadUrl(fileName, fileType, folder) {
