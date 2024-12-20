@@ -13,10 +13,7 @@ const initializeWebSocket = (server) => {
     if (!clientInPost[post_id]) {
       clientInPost[post_id] = [];
     }
-    // console.log(`Number of clients in post ${post_id}:`, clientInPost[post_id].length);
-
-    // console.log('Connection for post_id:', post_id);
-    // clientInPost[post_id].push(ws);
+  
     if (!clientInPost[post_id].includes(ws)) {
         clientInPost[post_id].push(ws);
     }
@@ -69,12 +66,18 @@ const initializeWebSocket = (server) => {
 
   // Lắng nghe yêu cầu upgrade từ HTTP server (nâng cấp kết nối từ HTTP sang WebSocket)
   server.on('upgrade', (req, socket, head) => {
-    if (req.url.startsWith('/ws/')) {
-      wss.handleUpgrade(req, socket, head, (ws) => {
-        wss.emit('connection', ws, req); // Tạo kết nối WebSocket
-      });
-    } else {
-      socket.destroy(); // Nếu không phải WebSocket, hủy kết nối
+    try {
+      if (req.url.startsWith('/ws/')) {
+        wss.handleUpgrade(req, socket, head, (ws) => {
+          wss.emit('connection', ws, req);
+        });
+      } else {
+        console.log('Non-WebSocket request received at:', req.url);
+        socket.destroy();
+      }
+    } catch (error) {
+      console.error('Error during upgrade:', error);
+      socket.destroy();
     }
   });
 };
